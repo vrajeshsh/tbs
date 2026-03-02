@@ -86,15 +86,17 @@ async function startServer() {
 
       let resultText = "";
 
-      if (process.env.NVIDIA_API_KEY) {
-        const response = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
+      if (process.env.OPENROUTER_API_KEY) {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${process.env.NVIDIA_API_KEY}`
+            "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            "HTTP-Referer": "https://theboringstack.com",
+            "X-Title": "TheBoringStack",
           },
           body: JSON.stringify({
-            model: "nvidia/llama-3.1-nemotron-70b-instruct",
+            model: "deepseek/deepseek-r1",
             messages: [{ role: "user", content: prompt }],
             temperature: 0.2,
             max_tokens: 2048
@@ -102,13 +104,13 @@ async function startServer() {
         });
 
         if (!response.ok) {
-          throw new Error(`NVIDIA API error: ${response.statusText}`);
+          throw new Error(`OpenRouter API error: ${response.statusText}`);
         }
 
         const data = await response.json();
         resultText = data.choices[0].message.content;
       } else {
-        throw new Error("No API key provided. Please set NVIDIA_API_KEY.");
+        throw new Error("No API key provided. Please set OPENROUTER_API_KEY.");
       }
 
       const cleanedText = resultText.replace(/\`\`\`json/g, '').replace(/\`\`\`/g, '').trim();
@@ -255,15 +257,17 @@ async function startServer() {
 
       let resultText = "";
 
-      if (process.env.NVIDIA_API_KEY) {
-        const response = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
+      if (process.env.OPENROUTER_API_KEY) {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${process.env.NVIDIA_API_KEY}`
+            "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            "HTTP-Referer": "https://theboringstack.com",
+            "X-Title": "TheBoringStack",
           },
           body: JSON.stringify({
-            model: "nvidia/llama-3.1-nemotron-70b-instruct",
+            model: "deepseek/deepseek-r1",
             messages: [{ role: "user", content: prompt }],
             temperature: 0.2,
             max_tokens: 2048
@@ -271,13 +275,13 @@ async function startServer() {
         });
 
         if (!response.ok) {
-          throw new Error(`NVIDIA API error: ${response.statusText}`);
+          throw new Error(`OpenRouter API error: ${response.statusText}`);
         }
 
         const data = await response.json();
         resultText = data.choices[0].message.content;
       } else {
-        throw new Error("No API key provided. Please set NVIDIA_API_KEY.");
+        throw new Error("No API key provided. Please set OPENROUTER_API_KEY.");
       }
 
       // Clean up potential markdown formatting from the response
