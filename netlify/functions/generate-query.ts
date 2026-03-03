@@ -54,7 +54,7 @@ export const handler: Handler = async (event, context) => {
                 "X-Title": "TheBoringStack",
             },
             body: JSON.stringify({
-                model: "deepseek/deepseek-r1",
+                model: "openai/gpt-4o-mini",
                 messages: [{ role: "user", content: prompt }],
                 temperature: 0.2,
                 max_tokens: 2048

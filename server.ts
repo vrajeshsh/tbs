@@ -85,7 +85,7 @@ async function startServer() {
             "X-Title": "TheBoringStack",
           },
           body: JSON.stringify({
-            model: "deepseek/deepseek-r1",
+            model: "openai/gpt-4o-mini",
             messages: [{ role: "user", content: prompt }],
             temperature: 0.2,
             max_tokens: 2048
@@ -116,9 +116,9 @@ async function startServer() {
         id,
         preview: cleanedText
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating query:", error);
-      res.status(500).json({ error: "Failed to generate architecture" });
+      res.status(500).json({ error: error.message || "Failed to generate architecture" });
     }
   });
 
@@ -243,7 +243,7 @@ async function startServer() {
             "X-Title": "TheBoringStack",
           },
           body: JSON.stringify({
-            model: "deepseek/deepseek-r1",
+            model: "openai/gpt-4o-mini",
             messages: [{ role: "user", content: prompt }],
             temperature: 0.2,
             max_tokens: 2048
