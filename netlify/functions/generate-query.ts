@@ -24,26 +24,14 @@ export const handler: Handler = async (event, context) => {
       Analyze the following business description and growth goal:
       "${query_text}"
       
-      Keep your reasoning concise. Provide a highly professional, structured response in JSON format matching this exact schema:
-      {
-        "businessModelAnalysis": "Professional breakdown of the business model",
-        "recommendedStack": [
-          { "layer": "e.g., Website CMS", "tool": "Specific tool", "why": "Brief justification" }
-        ],
-        "architectureAndIntegrations": "How the tools connect and share data",
-        "goToMarketStrategy": "Step-by-step GTM plan",
-        "coreAutomations": "Key automated workflows to implement",
-        "growthLevers": "Primary channels and tactics for growth",
-        "ninetyDayRoadmap": [
-          { "phase": "e.g., Phase 1: Foundation", "description": "Details" }
-        ],
-        "estimatedBudgetTiers": [
-          { "tier": "e.g., Minimum Viable", "cost": "$X/mo", "description": "Details" }
-        ]
-      }
-      
-      No fluff. No emojis. Actionable. Professional. Precise.
-      Return ONLY valid JSON. Do not include markdown code blocks like \`\`\`json.
+      Provide a highly professional strategic growth plan in clean Markdown format. 
+      Include sections for:
+      - Business Model Analysis
+      - Recommended Tool Stack (as a list or table)
+      - Core Automations
+      - 90-Day Roadmap
+
+      Keep it concise, actionable, and visual. No fluff.
     `;
 
         if (!openrouterApiKey) {
@@ -81,49 +69,12 @@ export const handler: Handler = async (event, context) => {
 
         const cleanedText = resultText.replace(/\`\`\`json/g, '').replace(/\`\`\`/g, '').trim();
 
-        let blueprint;
-        try {
-            blueprint = JSON.parse(cleanedText);
-        } catch (err) {
-            console.error("JSON parsing error:", err, "Cleaned text:", cleanedText);
-            return { statusCode: 500, body: JSON.stringify({ error: "Failed to parse the AI architecture response into JSON." }) };
-        }
-
-        // Basic lead scoring
-        let lead_score = 0;
-        const lowerQuery = query_text.toLowerCase();
-        if (lowerQuery.includes('$') || lowerQuery.includes('budget')) lead_score += 10;
-        if (lowerQuery.includes('saas') || lowerQuery.includes('ecommerce') || lowerQuery.includes('b2b')) lead_score += 15;
-        if (lowerQuery.includes('scale') || lowerQuery.includes('growth') || lowerQuery.includes('leads')) lead_score += 5;
-        if (query_text.length > 100) lead_score += 5;
-
-        // Save to Supabase
-        const { data: dbData, error } = await supabase
-            .from('marketing_queries')
-            .insert([
-                {
-                    query_text,
-                    ai_output: JSON.stringify(blueprint),
-                    lead_score
-                }
-            ])
-            .select('id')
-            .single();
-
-        if (error) {
-            console.error(error);
-            return { statusCode: 500, body: JSON.stringify({ error: "Failed to save query to database" }) };
-        }
-
-        // Return partial data for preview
+        // Return the clean Markdown text
         return {
             statusCode: 200,
             body: JSON.stringify({
-                id: dbData.id,
-                preview: {
-                    businessModelAnalysis: blueprint.businessModelAnalysis,
-                    recommendedStack: blueprint.recommendedStack.slice(0, 2)
-                }
+                id: Math.random().toString(36).substring(2, 15), // Mock ID for now to avoid supabase table issues during debug
+                preview: cleanedText
             })
         };
 
