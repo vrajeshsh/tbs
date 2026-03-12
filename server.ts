@@ -58,19 +58,17 @@ async function startServer() {
       }
 
       const prompt = `
-        You are a senior growth marketing architect with expertise in Martech, CDP, CRM, Automation, Attribution, Paid media, Data architecture, Funnel engineering, and B2B & B2C growth.
-        
-        Analyze the following business description and growth goal:
-        "${query_text}"
-        
-        Provide a highly professional strategic growth plan in clean Markdown format. 
-        Include sections for:
-        - Business Model Analysis
-        - Recommended Tool Stack (as a list or table)
-        - Core Automations
-        - 90-Day Roadmap
+        You are the **Lead Growth Marketing Architect** at **TheBoringStack**. Your goal is to design a high-performance, scalable marketing infrastructure for a client. 
 
-        Keep it concise, actionable, and visual. No fluff.
+        Client Context/Goal:
+        "${query_text}"
+
+        ### Instructions for the Overview (Preview):
+        1. **Prosperous Business Overview**: Briefly describe how the user's business could prosper and scale using the right technology stack.
+        2. **Growth Potential**: Highlight 2-3 key areas where AI and modern MarTech will provide the biggest ROI.
+        3. **Guided Next Steps**: Encourage the user to sign up to receive the **Full Growth Architecture Blueprint** (PDF) including specific tool recommendations, automations, and a 90-day roadmap.
+
+        Keep it concise, inspirational, and professional. Return in clean Markdown.
       `;
 
       let resultText = "";
@@ -85,24 +83,31 @@ async function startServer() {
             "X-Title": "TheBoringStack",
           },
           body: JSON.stringify({
-            model: "openai/gpt-4o-mini",
+            model: "deepseek/deepseek-chat", 
             messages: [{ role: "user", content: prompt }],
-            temperature: 0.2,
-            max_tokens: 2048
+            temperature: 0.1,
+            max_tokens: 1500
           })
         });
 
         if (!response.ok) {
-          throw new Error(`OpenRouter API error: ${response.statusText}`);
+          const errorBody = await response.text();
+          throw new Error(`OpenRouter API error (${response.status}): ${errorBody}`);
         }
 
         const data = await response.json();
         resultText = data.choices[0].message.content;
       } else {
-        throw new Error("No API key provided. Please set OPENROUTER_API_KEY.");
+        throw new Error("No API key provided. Please set OPENROUTER_API_KEY in .env file.");
       }
 
-      const cleanedText = resultText.replace(/\`\`\`json/g, '').replace(/\`\`\`/g, '').trim();
+      // Remove deepseek thinking block if present
+      const thinkMatch = resultText.match(/<think>[\s\S]*?<\/think>/);
+      if (thinkMatch) {
+        resultText = resultText.replace(thinkMatch[0], '');
+      }
+
+      const cleanedText = resultText.trim();
 
       const id = Math.random().toString(36).substring(2, 15);
 

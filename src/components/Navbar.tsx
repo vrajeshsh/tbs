@@ -37,9 +37,9 @@ export default function Navbar() {
             transition={{ type: 'spring', stiffness: 260, damping: 20 }}
             className="w-10 h-10 bg-brand-ink text-brand-bg flex items-center justify-center rounded-full font-serif text-xl font-bold"
           >
-            TBS
+            VS
           </motion.div>
-          <span className="font-serif text-xl tracking-tight hidden sm:block">TheBoringStack</span>
+          <span className="font-serif text-xl tracking-tight hidden sm:block">Vrajesh Shah</span>
         </Link>
 
         {/* Desktop Nav */}

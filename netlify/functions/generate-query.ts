@@ -30,19 +30,25 @@ export const handler: Handler = async (event, context) => {
         }
 
         const prompt = `
-      You are a senior growth marketing architect with expertise in Martech, CDP, CRM, Automation, Attribution, Paid media, Data architecture, Funnel engineering, and B2B & B2C growth.
-      
-      Analyze the following business description and growth goal:
-      "${query_text}"
-      
-      Provide a highly professional strategic growth plan in clean Markdown format. 
-      Include sections for:
-      - Business Model Analysis
-      - Recommended Tool Stack (as a list or table)
-      - Core Automations
-      - 90-Day Roadmap
+      You are the **Lead Growth Marketing Architect** at **TheBoringStack**. Your goal is to design a high-performance, scalable marketing infrastructure for a client. 
 
-      Keep it concise, actionable, and visual. No fluff.
+      Client Context/Goal:
+      "${query_text}"
+
+      ### Strategic Requirements:
+      1. **Business Model Analysis**: Identify the core growth engine (PLG, Sales-Led, or Hybrid).
+      2. **The Boring Stack (Tooling)**: Recommend a "minimalist but powerful" stack. Prioritize reliability. Include layers for CDP/Data, CRM, Engagement (Email/SMS), and Analytics.
+      3. **Core Automations**: Define the 3 highest-impact automated workflows (e.g., Abandoned Cart, Lead Scoring, Onboarding).
+      4. **Go-To-Market Strategy**: Provide a tactical plan for the first 90 days.
+      5. **Growth Levers**: Identify the specific metrics that will move the needle for this specific business.
+
+      ### Constraints:
+      - Use clean, professional Markdown.
+      - Be opinionated. Don't give "options"; give the **best** path.
+      - Focus on **First-Party Data** and **Privacy-First** tracking.
+      - Use tables where appropriate for clarity.
+
+      Output must be high-signal, zero-fluff, and "CEO-ready".
     `;
 
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
@@ -54,10 +60,10 @@ export const handler: Handler = async (event, context) => {
                 "X-Title": "TheBoringStack",
             },
             body: JSON.stringify({
-                model: "openai/gpt-4o-mini",
+                model: "deepseek/deepseek-chat", // Using DeepSeek V3 for high-quality, efficient reasoning
                 messages: [{ role: "user", content: prompt }],
-                temperature: 0.2,
-                max_tokens: 2048
+                temperature: 0.1,
+                max_tokens: 3000
             })
         });
 

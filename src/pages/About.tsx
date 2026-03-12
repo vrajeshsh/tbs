@@ -56,18 +56,18 @@ export default function About() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-20 items-start mb-32">
           <div className="lg:col-span-7">
             <SectionHeading 
-              title="Built at 3 AM." 
+              title="The Story Behind the Stack." 
               subtitle="Me, basically"
             />
             <div className="prose prose-lg text-brand-ink/70 leading-relaxed space-y-6">
               <p>
-                I'm Vrajesh Shah, a Creative Dev and MarTech Analyst. I spend my time at the intersection of high-end design, technical precision, and marketing strategy—usually with a cold brew in hand.
+                I'm Vrajesh Shah, a Creative Dev and MarTech Analyst. I spend my time at the intersection of high-end design, technical precision, and marketing strategy.
               </p>
               <p>
-                TheBoringStack was born from a simple realization: most marketing technology is over-engineered and under-utilized. I help brands build reliable, "boring" infrastructure that actually works, so they can focus on what matters.
+                I've spent my career helping brands turn complex data into meaningful customer experiences. I believe that technology should be an enabler, not a bottleneck that makes you want to pull your hair out.
               </p>
               <p>
-                Whether I'm deep-diving into LLM citation patterns or setting up a robust CDP, my focus is on performance and clarity. This site (and most of my best work) was likely vibe-coded at 3 AM with too much coffee.
+                Whether I'm building a custom analytics dashboard or standing up a foundational marketing stack for a startup, my focus is always on performance, scalability, and editorial quality. In my downtime, I enjoy helping small brands and ambitious entrepreneurs build the digital foundations they need to scale.
               </p>
             </div>
             
@@ -75,7 +75,8 @@ export default function About() {
               <motion.a 
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                href="#" 
+                href="./Vrajesh_Shah_Resume_final (1).docx" 
+                download
                 className="inline-flex items-center gap-3 px-8 py-4 bg-brand-ink text-brand-bg text-xs uppercase tracking-widest font-bold hover:bg-brand-accent transition-colors cursor-pointer"
               >
                 Download Resume <Download size={14} />
@@ -101,7 +102,7 @@ export default function About() {
               className="relative aspect-[4/5] bg-brand-ink/5 overflow-hidden"
             >
               <img 
-                src="https://ais-pre-ck2yavysnj357bgzi3hls6-293202060479.us-east1.run.app/professional-photo.jpg" 
+                src="./PXL_20240411_203024698.MP.jpg" 
                 alt="Vrajesh Shah"
                 className="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-1000"
                 referrerPolicy="no-referrer"

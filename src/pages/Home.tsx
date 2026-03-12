@@ -19,11 +19,11 @@ export default function Home() {
               transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
             >
               <span className="text-xs uppercase tracking-[0.4em] text-brand-ink/60 font-bold mb-6 block">
-                AI Digital Marketing Agency
+                Creative Dev / MarTech Analyst
               </span>
               <h1 className="text-6xl md:text-8xl lg:text-9xl font-serif leading-[0.9] mb-8 tracking-tighter">
-                TheBoring <br />
-                <span className="italic text-brand-accent">Stack.</span>
+                Vrajesh <br />
+                <span className="italic text-brand-accent">Shah.</span>
               </h1>
             </motion.div>
           </div>
@@ -34,7 +34,7 @@ export default function Home() {
               transition={{ delay: 0.4, duration: 0.8 }}
               className="text-lg md:text-xl text-brand-ink/80 leading-relaxed max-w-sm mb-8"
             >
-              Zero-Visit Visibility. Generative Engine Optimization. vibe coded at 3am.
+              Building reliable marketing infrastructure and digital experiences.
             </motion.p>
             <motion.div
               initial={{ opacity: 0 }}

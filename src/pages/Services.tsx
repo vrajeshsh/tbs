@@ -198,91 +198,56 @@ export default function Services() {
             className="w-full"
           >
             <div className="mb-12">
-              <h2 className="text-3xl font-serif mb-8 pb-4 border-b border-brand-ink/10">Architecture Preview</h2>
+              <h2 className="text-3xl font-serif mb-8 pb-4 border-b border-brand-ink/10">Prosperous Business Overview</h2>
               
-              <div className="mb-8">
-                <h3 className="text-xs uppercase tracking-widest font-bold text-brand-ink/50 mb-4">1. Business Model Analysis</h3>
-                <div className="prose prose-sm max-w-none text-brand-ink/80 font-serif leading-relaxed">
-                  <ReactMarkdown>{previewData.businessModelAnalysis}</ReactMarkdown>
-                </div>
-              </div>
-
-              <div className="mb-8">
-                <h3 className="text-xs uppercase tracking-widest font-bold text-brand-ink/50 mb-4">2. Recommended Stack (Preview)</h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-brand-ink/10">
-                        <th className="py-3 px-4 font-bold text-xs uppercase tracking-widest text-brand-ink/50">Layer</th>
-                        <th className="py-3 px-4 font-bold text-xs uppercase tracking-widest text-brand-ink/50">Tool</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {previewData.recommendedStack.map((item: any, i: number) => (
-                        <tr key={i} className="border-b border-brand-ink/5">
-                          <td className="py-4 px-4 font-medium">{item.layer}</td>
-                          <td className="py-4 px-4 text-brand-ink/70">{item.tool}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+              <div className="prose prose-lg max-w-none text-brand-ink/80 font-serif leading-relaxed prose-headings:font-serif prose-headings:font-normal">
+                <ReactMarkdown>{previewData}</ReactMarkdown>
               </div>
             </div>
 
             {/* Blur overlay & Unlock Form */}
-            <div className="relative">
+            <div className="relative mt-20">
               <div className="absolute inset-0 bg-gradient-to-b from-transparent to-brand-bg z-10 pointer-events-none" />
               <div className="opacity-20 blur-sm select-none pointer-events-none">
-                <h3 className="text-xs uppercase tracking-widest font-bold text-brand-ink/50 mb-4">3. Architecture & Integrations</h3>
-                <p className="font-serif leading-relaxed mb-8">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</p>
-                <h3 className="text-xs uppercase tracking-widest font-bold text-brand-ink/50 mb-4">4. Go-To-Market Strategy</h3>
-                <p className="font-serif leading-relaxed">Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                <h3 className="text-xs uppercase tracking-widest font-bold text-brand-ink/50 mb-4">3. Full Growth Architecture & Integrations</h3>
+                <p className="font-serif leading-relaxed mb-8">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+                <h3 className="text-xs uppercase tracking-widest font-bold text-brand-ink/50 mb-4">4. Strategic 90-Day Go-To-Market Plan</h3>
+                <p className="font-serif leading-relaxed">Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
               </div>
               
               <div className="absolute bottom-0 left-0 right-0 z-20 flex flex-col items-center justify-end pb-12">
-                {!limitReached ? (
-                  <div className="bg-white p-8 border border-brand-ink/10 shadow-xl max-w-md w-full text-center">
-                    <Lock className="mx-auto mb-4 text-brand-ink/40" size={32} />
-                    <h3 className="text-xl font-serif mb-2">Unlock Full Blueprint</h3>
-                    <p className="text-sm text-brand-ink/60 mb-6">Enter your details to reveal the complete architecture, GTM strategy, and automations.</p>
-                    
-                    <form onSubmit={handleUnlock} className="flex flex-col gap-4">
-                      <input
-                        type="text"
-                        placeholder="Your Name"
-                        required
-                        value={unlockName}
-                        onChange={(e) => setUnlockName(e.target.value)}
-                        className="w-full px-4 py-3 bg-brand-bg/50 border border-brand-ink/20 focus:outline-none focus:border-brand-ink text-sm"
-                      />
-                      <input
-                        type="email"
-                        placeholder="Your Email"
-                        required
-                        value={unlockEmail}
-                        onChange={(e) => setUnlockEmail(e.target.value)}
-                        className="w-full px-4 py-3 bg-brand-bg/50 border border-brand-ink/20 focus:outline-none focus:border-brand-ink text-sm"
-                      />
-                      <button
-                        type="submit"
-                        disabled={unlocking}
-                        className="w-full py-4 bg-brand-ink text-brand-bg text-xs uppercase tracking-widest font-bold hover:bg-brand-ink/90 transition-colors disabled:opacity-50"
-                      >
-                        {unlocking ? 'Unlocking...' : 'Reveal Full Output'}
-                      </button>
-                    </form>
-                    {error && <p className="mt-4 text-red-600 text-xs">{error}</p>}
-                  </div>
-                ) : (
-                  <div className="bg-brand-ink text-brand-bg p-8 max-w-md w-full text-center">
-                    <h3 className="text-xl font-serif mb-4">Limit Reached</h3>
-                    <p className="text-sm text-brand-bg/70 mb-8">You've used your 3 free queries. Need deeper help? Let's build it together.</p>
-                    <a href="/about#contact" className="inline-block w-full py-4 bg-brand-bg text-brand-ink text-xs uppercase tracking-widest font-bold hover:bg-brand-bg/90 transition-colors">
-                      Book Strategy Session
-                    </a>
-                  </div>
-                )}
+                <div className="bg-white p-8 border border-brand-ink/10 shadow-xl max-w-md w-full text-center">
+                  <Lock className="mx-auto mb-4 text-brand-ink/40" size={32} />
+                  <h3 className="text-xl font-serif mb-2">Get the Full PDF Blueprint</h3>
+                  <p className="text-sm text-brand-ink/60 mb-6">Enter your email to receive the complete Growth Architecture, GTM strategy, and Tool Recommendations via email.</p>
+                  
+                  <form onSubmit={handleUnlock} className="flex flex-col gap-4">
+                    <input
+                      type="text"
+                      placeholder="Your Name"
+                      required
+                      value={unlockName}
+                      onChange={(e) => setUnlockName(e.target.value)}
+                      className="w-full px-4 py-3 bg-brand-bg/50 border border-brand-ink/20 focus:outline-none focus:border-brand-ink text-sm"
+                    />
+                    <input
+                      type="email"
+                      placeholder="Your Email"
+                      required
+                      value={unlockEmail}
+                      onChange={(e) => setUnlockEmail(e.target.value)}
+                      className="w-full px-4 py-3 bg-brand-bg/50 border border-brand-ink/20 focus:outline-none focus:border-brand-ink text-sm"
+                    />
+                    <button
+                      type="submit"
+                      disabled={unlocking}
+                      className="w-full py-4 bg-brand-ink text-brand-bg text-xs uppercase tracking-widest font-bold hover:bg-brand-ink/90 transition-colors disabled:opacity-50"
+                    >
+                      {unlocking ? 'Sending PDF...' : 'Send My Full Blueprint'}
+                    </button>
+                  </form>
+                  {error && <p className="mt-4 text-red-600 text-xs">{error}</p>}
+                </div>
               </div>
             </div>
           </motion.div>
@@ -292,117 +257,25 @@ export default function Services() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="w-full"
+            className="w-full text-center py-20"
           >
-            <div className="flex items-center justify-between mb-12 pb-6 border-b border-brand-ink/10">
-              <h1 className="text-4xl font-serif">Growth Architecture</h1>
-              <div className="flex gap-4">
-                <button onClick={copyToClipboard} className="p-2 text-brand-ink/50 hover:text-brand-ink transition-colors" title="Copy to Clipboard">
-                  <Copy size={20} />
-                </button>
-                <button className="p-2 text-brand-ink/50 hover:text-brand-ink transition-colors" title="Download PDF">
-                  <Download size={20} />
-                </button>
-              </div>
+            <div className="w-20 h-20 bg-brand-accent/10 text-brand-accent rounded-full flex items-center justify-center mx-auto mb-8">
+              <CheckCircle2 size={32} />
             </div>
-
-            <div className="space-y-16">
-              <section>
-                <h2 className="text-xs uppercase tracking-widest font-bold text-brand-ink/50 mb-6">1. Business Model Analysis</h2>
-                <div className="prose prose-lg max-w-none text-brand-ink/80 font-serif leading-relaxed prose-headings:font-serif prose-headings:font-normal">
-                  <ReactMarkdown>{fullBlueprint.businessModelAnalysis}</ReactMarkdown>
-                </div>
-              </section>
-
-              <section>
-                <h2 className="text-xs uppercase tracking-widest font-bold text-brand-ink/50 mb-6">2. Martech Stack</h2>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="border-b border-brand-ink/20">
-                        <th className="py-4 px-4 font-bold text-xs uppercase tracking-widest text-brand-ink/50">Layer</th>
-                        <th className="py-4 px-4 font-bold text-xs uppercase tracking-widest text-brand-ink/50">Tool</th>
-                        <th className="py-4 px-4 font-bold text-xs uppercase tracking-widest text-brand-ink/50">Why</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {fullBlueprint.recommendedStack.map((item: any, i: number) => (
-                        <tr key={i} className="border-b border-brand-ink/10">
-                          <td className="py-5 px-4 font-medium text-sm">{item.layer}</td>
-                          <td className="py-5 px-4 text-sm font-bold">{item.tool}</td>
-                          <td className="py-5 px-4 text-sm text-brand-ink/70 font-serif">{item.why}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </section>
-
-              <section>
-                <h2 className="text-xs uppercase tracking-widest font-bold text-brand-ink/50 mb-6">3. Architecture & Integrations</h2>
-                <div className="prose prose-lg max-w-none text-brand-ink/80 font-serif leading-relaxed bg-brand-ink/5 p-8 border border-brand-ink/10">
-                  <ReactMarkdown>{fullBlueprint.architectureAndIntegrations}</ReactMarkdown>
-                </div>
-              </section>
-
-              <section>
-                <h2 className="text-xs uppercase tracking-widest font-bold text-brand-ink/50 mb-6">4. Go-To-Market Plan</h2>
-                <div className="prose prose-lg max-w-none text-brand-ink/80 font-serif leading-relaxed">
-                  <ReactMarkdown>{fullBlueprint.goToMarketStrategy}</ReactMarkdown>
-                </div>
-              </section>
-
-              <section>
-                <h2 className="text-xs uppercase tracking-widest font-bold text-brand-ink/50 mb-6">5. Core Automations</h2>
-                <div className="prose prose-lg max-w-none text-brand-ink/80 font-serif leading-relaxed">
-                  <ReactMarkdown>{fullBlueprint.coreAutomations}</ReactMarkdown>
-                </div>
-              </section>
-
-              <section>
-                <h2 className="text-xs uppercase tracking-widest font-bold text-brand-ink/50 mb-6">6. Growth Levers</h2>
-                <div className="prose prose-lg max-w-none text-brand-ink/80 font-serif leading-relaxed">
-                  <ReactMarkdown>{fullBlueprint.growthLevers}</ReactMarkdown>
-                </div>
-              </section>
-
-              <section>
-                <h2 className="text-xs uppercase tracking-widest font-bold text-brand-ink/50 mb-6">7. 90-Day Plan</h2>
-                <div className="space-y-6">
-                  {fullBlueprint.ninetyDayRoadmap.map((phase: any, i: number) => (
-                    <div key={i} className="flex gap-6 p-6 border border-brand-ink/10">
-                      <div className="flex-shrink-0 w-12 h-12 bg-brand-ink text-brand-bg flex items-center justify-center font-serif text-xl">
-                        {i + 1}
-                      </div>
-                      <div>
-                        <h4 className="font-bold mb-2">{phase.phase}</h4>
-                        <p className="text-brand-ink/70 font-serif">{phase.description}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              <section>
-                <h2 className="text-xs uppercase tracking-widest font-bold text-brand-ink/50 mb-6">8. Budget Tiers</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {fullBlueprint.estimatedBudgetTiers.map((tier: any, i: number) => (
-                    <div key={i} className="p-8 border border-brand-ink/20">
-                      <h4 className="font-bold text-lg mb-2">{tier.tier}</h4>
-                      <div className="text-2xl font-serif mb-4">{tier.cost}</div>
-                      <p className="text-brand-ink/70 text-sm">{tier.description}</p>
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              <div className="mt-20 p-12 bg-brand-ink text-brand-bg text-center">
-                <h3 className="text-3xl font-serif mb-6">Want a fully customized architecture with implementation support?</h3>
-                <a href="/about#contact" className="inline-block px-8 py-4 bg-brand-bg text-brand-ink text-xs uppercase tracking-widest font-bold hover:bg-brand-bg/90 transition-colors">
-                  Book Strategy Session
-                </a>
-              </div>
-            </div>
+            <h1 className="text-4xl font-serif mb-4 italic">Sent to your Inbox.</h1>
+            <p className="text-brand-ink/60 text-lg mb-12 max-w-md mx-auto">
+              The full **Growth Architecture Blueprint** for your business has been sent to **{unlockEmail}** from **vrajeshshah58@gmail.com**.
+            </p>
+            <button 
+              onClick={() => {
+                setPreviewData(null);
+                setFullBlueprint(null);
+                setQuery('');
+              }}
+              className="text-xs uppercase tracking-widest font-bold text-brand-ink/40 hover:text-brand-ink transition-colors cursor-pointer"
+            >
+              Start another audit
+            </button>
           </motion.div>
         )}
 
