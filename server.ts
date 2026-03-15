@@ -88,11 +88,18 @@ async function safeFetchJson(url: string, options: any) {
   }
 }
 
-// Request logging middleware
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url}`);
-  next();
-});
+// Sanity-check for Vercel environment variables on startup
+if (process.env.VERCEL) {
+  console.log("🔍 Checking Vercel Environment Variables...");
+  const requiredKeys = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'OPENROUTER_API_KEY', 'RESEND_API_KEY'];
+  requiredKeys.forEach(key => {
+    if (process.env[key] && process.env[key]!.length > 0) {
+      console.log(`✅ ${key} is set.`);
+    } else {
+      console.error(`❌ CRITICAL: ${key} is MISSING or empty.`);
+    }
+  });
+}
 
 // API Routes
 app.get("/api/health", (req, res) => {
