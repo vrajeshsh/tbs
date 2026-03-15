@@ -224,21 +224,44 @@ app.get("/api/health", (req, res) => {
 
       const { supabase, db } = await getDb();
       if (supabase) {
-        let { data: subData } = await supabase.from('subscribers').select('*').eq('email', email).single();
+        // 1. Handle Subscriber
+        let { data: subData, error: subSelectError } = await supabase.from('subscribers').select('*').eq('email', email).maybeSingle();
+        
+        if (subSelectError) {
+          console.error("❌ Supabase Subscriber Select Error:", subSelectError);
+          return res.status(500).json({ error: "Failed to verify subscriber" });
+        }
+
         if (!subData) {
-          await supabase.from('subscribers').insert([{ email, name, total_queries: 1 }]);
+          const { error: subInsertError } = await supabase.from('subscribers').insert([{ email, name, total_queries: 1 }]);
+          if (subInsertError) {
+            console.error("❌ Supabase Subscriber Insert Error:", subInsertError);
+            return res.status(500).json({ error: "Failed to create subscriber. Ensure 'subscribers' table exists." });
+          }
         } else {
-          await supabase.from('subscribers').update({ total_queries: (subData.total_queries || 0) + 1 }).eq('email', email);
+          const { error: subUpdateError } = await supabase.from('subscribers').update({ total_queries: (subData.total_queries || 0) + 1 }).eq('email', email);
+          if (subUpdateError) {
+            console.error("❌ Supabase Subscriber Update Error:", subUpdateError);
+          }
         }
         
-        await supabase.from('marketing_queries').update({ email }).eq('id', id);
+        // 2. Link Query to Email
+        const { error: queryUpdateError } = await supabase.from('marketing_queries').update({ email }).eq('id', id);
+        if (queryUpdateError) {
+          console.error("❌ Supabase Query Update Error (Linking Email):", queryUpdateError);
+          return res.status(500).json({ error: "Failed to link email to query. Ensure table and foreign key exist." });
+        }
 
+        // 3. Get Query Output
         const { data: qData, error: qError } = await supabase.from('marketing_queries').select('ai_output').eq('id', id).single();
-        if (qError || !qData) return res.status(404).json({ error: "Query not found" });
+        if (qError || !qData) {
+          console.error("❌ Supabase Query Final Select Error:", qError);
+          return res.status(404).json({ error: "Query not found" });
+        }
 
         let fullBlueprint;
         try {
-          fullBlueprint = JSON.parse(qData.ai_output);
+          fullBlueprint = typeof qData.ai_output === 'string' ? JSON.parse(qData.ai_output) : qData.ai_output;
         } catch (e) {
           fullBlueprint = qData.ai_output;
         }
