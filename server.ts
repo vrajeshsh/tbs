@@ -24,21 +24,42 @@ let supabase: any = null;
 async function getDb() {
   if (supabase || db) return { supabase, db };
 
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+
+  if (supabaseUrl && supabaseKey) {
     try {
-      // Dynamic import to prevent Vercel from failing if the native module isn't present
-      const { default: Database } = await import("better-sqlite3");
-      db = new Database(path.join(__dirname, "blueprints.db"));
-      
-      db.exec(`
-        CREATE TABLE IF NOT EXISTS marketing_blueprints (id TEXT PRIMARY KEY, business_name TEXT, input_data TEXT, ai_output TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
-        CREATE TABLE IF NOT EXISTS subscribers (email TEXT PRIMARY KEY, name TEXT, total_queries INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
-        CREATE TABLE IF NOT EXISTS marketing_queries (id TEXT PRIMARY KEY, email TEXT, query_text TEXT, ai_output TEXT, lead_score INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
-      `);
-      console.log("✅ Local SQLite initialized.");
-    } catch (err: any) {
-      console.error("❌ Failed to initialize SQLite:", err.message);
-      throw new Error("No database available. Please configure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY on Vercel.");
+      supabase = createClient(supabaseUrl, supabaseKey);
+      console.log("✅ Lazy-initialized Supabase");
+      return { supabase, db: null };
+    } catch (err) {
+      console.error("❌ Failed to initialize Supabase:", err);
     }
+  }
+
+  // If we are on Vercel and missing these, we MUST error out cleanly
+  if (process.env.VERCEL) {
+    console.error("❌ CRITICAL: Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY on Vercel.");
+    return { supabase: null, db: null };
+  }
+  
+  console.log("⚠️ Supabase credentials not found. Using local SQLite.");
+  try {
+    // Dynamic import to prevent Vercel from failing if the native module isn't present
+    const { default: Database } = await import("better-sqlite3");
+    db = new Database(path.join(__dirname, "blueprints.db"));
+    
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS marketing_blueprints (id TEXT PRIMARY KEY, business_name TEXT, input_data TEXT, ai_output TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
+      CREATE TABLE IF NOT EXISTS subscribers (email TEXT PRIMARY KEY, name TEXT, total_queries INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
+      CREATE TABLE IF NOT EXISTS marketing_queries (id TEXT PRIMARY KEY, email TEXT, query_text TEXT, ai_output TEXT, lead_score INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);
+    `);
+    console.log("✅ Local SQLite initialized.");
+  } catch (err: any) {
+    console.error("❌ Failed to initialize SQLite:", err.message);
+    db = null;
+  }
+  
   return { supabase, db };
 }
 
@@ -153,11 +174,17 @@ app.get("/api/health", (req, res) => {
 
       const id = Math.random().toString(36).substring(2, 15);
 
-      const stmt = db.prepare(`
-        INSERT INTO marketing_queries (id, query_text, ai_output, lead_score)
-        VALUES (?, ?, ?, ?)
-      `);
-      stmt.run(id, query_text, cleanedText, 0);
+      const { supabase, db } = await getDb();
+      if (supabase) {
+        const { error } = await supabase.from('marketing_queries').insert([{ id, query_text, ai_output: cleanedText, lead_score: 0 }]);
+        if (error) console.error("Failed to insert query to supabase", error);
+      } else if (db) {
+        const stmt = db.prepare(`
+          INSERT INTO marketing_queries (id, query_text, ai_output, lead_score)
+          VALUES (?, ?, ?, ?)
+        `);
+        stmt.run(id, query_text, cleanedText, 0);
+      }
 
       res.json({
         id,
@@ -170,35 +197,60 @@ app.get("/api/health", (req, res) => {
   });
 
   // Unlock full query
-  app.post("/api/unlock-query", (req, res) => {
+  app.post("/api/unlock-query", async (req, res) => {
     try {
       const { id, name, email } = req.body;
       if (!id || !name || !email) {
         return res.status(400).json({ error: "Missing required fields" });
       }
 
-      // Check or create subscriber
-      let subscriber = db.prepare("SELECT * FROM subscribers WHERE email = ?").get(email) as any;
+      const { supabase, db } = await getDb();
+      if (supabase) {
+        let { data: subData } = await supabase.from('subscribers').select('*').eq('email', email).single();
+        if (!subData) {
+          await supabase.from('subscribers').insert([{ email, name, total_queries: 1 }]);
+        } else {
+          await supabase.from('subscribers').update({ total_queries: (subData.total_queries || 0) + 1 }).eq('email', email);
+        }
+        
+        await supabase.from('marketing_queries').update({ email }).eq('id', id);
 
-      if (!subscriber) {
-        db.prepare("INSERT INTO subscribers (email, name, total_queries) VALUES (?, ?, 0)").run(email, name);
-        subscriber = { email, name, total_queries: 0 };
+        const { data: qData, error: qError } = await supabase.from('marketing_queries').select('ai_output').eq('id', id).single();
+        if (qError || !qData) return res.status(404).json({ error: "Query not found" });
+
+        let fullBlueprint;
+        try {
+          fullBlueprint = JSON.parse(qData.ai_output);
+        } catch (e) {
+          fullBlueprint = qData.ai_output;
+        }
+        return res.json({ blueprint: fullBlueprint });
+      } else if (db) {
+        // Check or create subscriber
+        let subscriber = db.prepare("SELECT * FROM subscribers WHERE email = ?").get(email) as any;
+
+        if (!subscriber) {
+          db.prepare("INSERT INTO subscribers (email, name, total_queries) VALUES (?, ?, 0)").run(email, name);
+          subscriber = { email, name, total_queries: 0 };
+        }
+
+        // Update query with email
+        db.prepare("UPDATE marketing_queries SET email = ? WHERE id = ?").run(email, id);
+
+        // Increment queries
+        db.prepare("UPDATE subscribers SET total_queries = total_queries + 1 WHERE email = ?").run(email);
+
+        // Get full output
+        const queryRow = db.prepare("SELECT ai_output FROM marketing_queries WHERE id = ?").get(id) as any;
+        if (!queryRow) {
+          return res.status(404).json({ error: "Query not found" });
+        }
+
+        const fullBlueprint = JSON.parse(queryRow.ai_output);
+        return res.json({ blueprint: fullBlueprint });
+      } else {
+        return res.status(500).json({ error: "No database available to retrieve the request." });
       }
-
-      // Update query with email
-      db.prepare("UPDATE marketing_queries SET email = ? WHERE id = ?").run(email, id);
-
-      // Increment queries
-      db.prepare("UPDATE subscribers SET total_queries = total_queries + 1 WHERE email = ?").run(email);
-
-      // Get full output
-      const queryRow = db.prepare("SELECT ai_output FROM marketing_queries WHERE id = ?").get(id) as any;
-      if (!queryRow) {
-        return res.status(404).json({ error: "Query not found" });
-      }
-
-      const fullBlueprint = JSON.parse(queryRow.ai_output);
-      res.json({ blueprint: fullBlueprint });
 
     } catch (error) {
       console.error("Error unlocking query:", error);
@@ -207,15 +259,26 @@ app.get("/api/health", (req, res) => {
   });
 
   // Get all queries (Admin)
-  app.get("/api/queries", (req, res) => {
+  app.get("/api/queries", async (req, res) => {
     try {
-      const stmt = db.prepare("SELECT * FROM marketing_queries ORDER BY lead_score DESC, created_at DESC");
-      const queries = stmt.all();
+      const { supabase, db } = await getDb();
+      let queries = [];
 
-      const parsedQueries = queries.map((q: any) => ({
-        ...q,
-        ai_output: JSON.parse(q.ai_output)
-      }));
+      if (supabase) {
+        const { data } = await supabase.from('marketing_queries').select('*').order('created_at', { ascending: false });
+        queries = data || [];
+      } else if (db) {
+        const stmt = db.prepare("SELECT * FROM marketing_queries ORDER BY lead_score DESC, created_at DESC");
+        queries = stmt.all();
+      }
+
+      const parsedQueries = queries.map((q: any) => {
+        try {
+         return { ...q, ai_output: JSON.parse(q.ai_output) };
+        } catch {
+         return q;
+        }
+      });
 
       res.json(parsedQueries);
     } catch (error) {
@@ -324,20 +387,26 @@ app.get("/api/health", (req, res) => {
   });
 
   // Save a blueprint
-  app.post("/api/blueprints", (req, res) => {
+  app.post("/api/blueprints", async (req, res) => {
     try {
       const { id, business_name, input_data, ai_output } = req.body;
 
       if (!id || !business_name || !input_data || !ai_output) {
         return res.status(400).json({ error: "Missing required fields" });
       }
-
-      const stmt = db.prepare(`
-        INSERT INTO marketing_blueprints (id, business_name, input_data, ai_output)
-        VALUES (?, ?, ?, ?)
-      `);
-
-      stmt.run(id, business_name, JSON.stringify(input_data), JSON.stringify(ai_output));
+      
+      const { supabase, db } = await getDb();
+      if (supabase) {
+        await supabase.from('marketing_blueprints').insert([{
+           id, business_name, input_data: JSON.stringify(input_data), ai_output: JSON.stringify(ai_output)
+        }]);
+      } else if (db) {
+        const stmt = db.prepare(`
+          INSERT INTO marketing_blueprints (id, business_name, input_data, ai_output)
+          VALUES (?, ?, ?, ?)
+        `);
+        stmt.run(id, business_name, JSON.stringify(input_data), JSON.stringify(ai_output));
+      }
 
       res.status(201).json({ success: true, id });
     } catch (error) {
@@ -347,17 +416,31 @@ app.get("/api/health", (req, res) => {
   });
 
   // Get all blueprints (Admin)
-  app.get("/api/blueprints", (req, res) => {
+  app.get("/api/blueprints", async (req, res) => {
     try {
-      const stmt = db.prepare("SELECT * FROM marketing_blueprints ORDER BY created_at DESC");
-      const blueprints = stmt.all();
+      const { supabase, db } = await getDb();
+      let blueprints = [];
+
+      if (supabase) {
+        const { data } = await supabase.from('marketing_blueprints').select('*').order('created_at', { ascending: false });
+        blueprints = data || [];
+      } else if (db) {
+        const stmt = db.prepare("SELECT * FROM marketing_blueprints ORDER BY created_at DESC");
+        blueprints = stmt.all();
+      }
 
       // Parse JSON strings back to objects
-      const parsedBlueprints = blueprints.map((bp: any) => ({
-        ...bp,
-        input_data: JSON.parse(bp.input_data),
-        ai_output: JSON.parse(bp.ai_output)
-      }));
+      const parsedBlueprints = blueprints.map((bp: any) => {
+        try {
+          return {
+            ...bp,
+            input_data: JSON.parse(bp.input_data),
+            ai_output: JSON.parse(bp.ai_output)
+          };
+        } catch {
+          return bp;
+        }
+      });
 
       res.json(parsedBlueprints);
     } catch (error) {
@@ -367,14 +450,21 @@ app.get("/api/health", (req, res) => {
   });
 
   // Delete a blueprint
-  app.delete("/api/blueprints", (req, res) => {
+  app.delete("/api/blueprints", async (req, res) => {
     try {
       const id = req.query.id as string;
       if (!id) {
         return res.status(400).json({ error: "ID is required" });
       }
-      const stmt = db.prepare("DELETE FROM marketing_blueprints WHERE id = ?");
-      stmt.run(id);
+      
+      const { supabase, db } = await getDb();
+      if (supabase) {
+        await supabase.from('marketing_blueprints').delete().eq('id', id);
+      } else if (db) {
+        const stmt = db.prepare("DELETE FROM marketing_blueprints WHERE id = ?");
+        stmt.run(id);
+      }
+      
       res.json({ success: true });
     } catch (error) {
       console.error("Error deleting blueprint:", error);
