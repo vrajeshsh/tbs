@@ -165,20 +165,37 @@ app.get("/api/health", (req, res) => {
         throw new Error("No API key provided. Please set OPENROUTER_API_KEY in .env file.");
       }
 
-      // Remove deepseek thinking block if present
       const thinkMatch = resultText.match(/<think>[\s\S]*?<\/think>/);
       if (thinkMatch) {
         resultText = resultText.replace(thinkMatch[0], '');
       }
 
-      const cleanedText = resultText.trim();
+      // 1. Detect and strip markdown code block fences (e.g. ```markdown ... ```)
+      let cleanedText = resultText.trim();
+      const codeFenceRegex = /^```(?:markdown)?\n([\s\S]*?)\n```$/i;
+      const match = cleanedText.match(codeFenceRegex);
+      if (match) {
+        cleanedText = match[1].trim();
+      }
+      
+      // 2. Remove any remaining backticks at start/end if they were used for wrapping
+      cleanedText = cleanedText.replace(/^```|```$/g, "").trim();
 
       const id = crypto.randomUUID();
 
       const { supabase, db } = await getDb();
       if (supabase) {
         const { error } = await supabase.from('marketing_queries').insert([{ id, query_text, ai_output: cleanedText, lead_score: 0 }]);
-        if (error) console.error("Failed to insert query to supabase", error);
+        if (error) {
+           console.error("❌ Supabase Insertion Error:", {
+             code: error.code,
+             message: error.message,
+             details: error.details,
+             hint: error.hint
+           });
+           // Log it but previous stable behavior was not throwing a blocking error here
+           // However, to help the user, we should probably warn them in the console
+        }
       } else if (db) {
         const stmt = db.prepare(`
           INSERT INTO marketing_queries (id, query_text, ai_output, lead_score)
