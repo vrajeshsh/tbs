@@ -12,8 +12,10 @@ async function runDiagnostics() {
   console.log("\n📦 Checking Environment Variables...");
   const keys = ['OPENROUTER_API_KEY', 'SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'RESEND_API_KEY'];
   keys.forEach(key => {
-    if (process.env[key]) {
-      console.log(`✅ ${key} is set (Length: ${process.env[key]?.length})`);
+    const val = process.env[key];
+    if (val) {
+      let displayVal = val.length > 8 ? `${val.substring(0, 4)}...${val.substring(val.length - 4)}` : "****";
+      console.log(`✅ ${key} is set: ${displayVal}`);
     } else {
       console.error(`❌ ${key} is MISSING`);
     }
@@ -62,6 +64,9 @@ async function runDiagnostics() {
         const { error } = await supabase.from(table).select('count', { count: 'exact', head: true });
         if (error) {
           console.error(`❌ Supabase table '${table}' check failed:`, error.message);
+          if (error.code === 'PGRST205') {
+            console.log(`   💡 Tip: This means the table '${table}' was not found in the 'public' schema of the project at ${process.env.SUPABASE_URL}`);
+          }
         } else {
           console.log(`✅ Supabase table '${table}' is accessible.`);
         }
