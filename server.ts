@@ -6,6 +6,7 @@ import { fileURLToPath } from "url";
 import { Resend } from 'resend';
 import { jsPDF } from 'jspdf';
 import { createClient } from '@supabase/supabase-js';
+import crypto from "node:crypto";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -172,7 +173,7 @@ app.get("/api/health", (req, res) => {
 
       const cleanedText = resultText.trim();
 
-      const id = Math.random().toString(36).substring(2, 15);
+      const id = crypto.randomUUID();
 
       const { supabase, db } = await getDb();
       if (supabase) {
