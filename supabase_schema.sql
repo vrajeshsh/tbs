@@ -1,4 +1,6 @@
 -- Run this script in your Supabase SQL Editor
+-- If you already have the tables but are getting "Could not find column 'name'", run this:
+-- ALTER TABLE public.subscribers ADD COLUMN IF NOT EXISTS name text;
 
 -- 1. Create subscribers table
 create table public.subscribers (

@@ -100,10 +100,12 @@ if (process.env.VERCEL) {
   console.log("🔍 Checking Vercel Environment Variables...");
   const requiredKeys = ['SUPABASE_URL', 'SUPABASE_SERVICE_ROLE_KEY', 'OPENROUTER_API_KEY', 'RESEND_API_KEY'];
   requiredKeys.forEach(key => {
-    if (process.env[key] && process.env[key]!.length > 0) {
-      console.log(`✅ ${key} is set.`);
+    const viteKey = `VITE_${key}`;
+    const value = process.env[key] || process.env[viteKey];
+    if (value && value.length > 0) {
+      console.log(`✅ ${key} is set (or ${viteKey}).`);
     } else {
-      console.error(`❌ CRITICAL: ${key} is MISSING or empty.`);
+      console.error(`❌ CRITICAL: ${key} (or ${viteKey}) is MISSING or empty.`);
     }
   });
 }
@@ -236,7 +238,18 @@ app.get("/api/health", (req, res) => {
           const { error: subInsertError } = await supabase.from('subscribers').insert([{ email, name, total_queries: 1 }]);
           if (subInsertError) {
             console.error("❌ Supabase Subscriber Insert Error:", subInsertError);
-            return res.status(500).json({ error: "Failed to create subscriber. Ensure 'subscribers' table exists." });
+            
+            // Fallback: If 'name' column is missing (PGRST204), try inserting without it
+            if (subInsertError.code === 'PGRST204' && subInsertError.message.includes("'name'")) {
+              console.log("⚠️ Falling back to insertion without 'name' column...");
+              const { error: fallbackError } = await supabase.from('subscribers').insert([{ email, total_queries: 1 }]);
+              if (fallbackError) {
+                console.error("❌ Subscriber insertion failed even without 'name':", fallbackError);
+                return res.status(500).json({ error: "Failed to create subscriber." });
+              }
+            } else {
+              return res.status(500).json({ error: "Failed to create subscriber. Ensure 'subscribers' table exists." });
+            }
           }
         } else {
           const { error: subUpdateError } = await supabase.from('subscribers').update({ total_queries: (subData.total_queries || 0) + 1 }).eq('email', email);
